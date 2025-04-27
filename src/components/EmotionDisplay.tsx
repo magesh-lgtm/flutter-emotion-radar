@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -101,8 +100,7 @@ const EmotionDisplay: React.FC<EmotionDisplayProps> = ({ detectedEmotion }) => {
         
         <Progress 
           value={confidence * 100} 
-          className="h-1.5 mt-1.5 mb-3"
-          indicatorClassName={getProgressColor(confidence)}
+          className={cn("h-1.5 mt-1.5 mb-3", getProgressColor(confidence))}
         />
         
         <p className="text-sm text-gray-600 mt-2">

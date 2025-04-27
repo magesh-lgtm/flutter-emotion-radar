@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import CameraView from './CameraView';
 import EmotionDisplay from './EmotionDisplay';
 import PermissionRequest from './PermissionRequest';
 import { detectEmotion, EmotionResult } from '@/utils/emotionUtils';
-import { useToast } from "@/components/ui/toast";
+import { useToast } from "@/hooks/use-toast";
 
 const EmotionDetector: React.FC = () => {
   const [permissionState, setPermissionState] = useState<'prompt' | 'denied' | 'granted' | 'error'>('prompt');
