@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -25,11 +26,11 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
-					DEFAULT: 'hsl(var(--primary))',
+					DEFAULT: '#9b87f5',
 					foreground: 'hsl(var(--primary-foreground))'
 				},
 				secondary: {
-					DEFAULT: 'hsl(var(--secondary))',
+					DEFAULT: '#7E69AB',
 					foreground: 'hsl(var(--secondary-foreground))'
 				},
 				destructive: {
@@ -41,7 +42,7 @@ export default {
 					foreground: 'hsl(var(--muted-foreground))'
 				},
 				accent: {
-					DEFAULT: 'hsl(var(--accent))',
+					DEFAULT: '#6E59A5',
 					foreground: 'hsl(var(--accent-foreground))'
 				},
 				popover: {
@@ -61,6 +62,25 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Emotion colors
+				emotion: {
+					happy: '#F2FCE2', // Soft green
+					sad: '#D3E4FD', // Soft blue
+					angry: '#FEC6A1', // Soft orange
+					surprised: '#FEF7CD', // Soft yellow
+					fearful: '#FFDEE2', // Soft pink
+					disgusted: '#FDE1D3', // Soft peach
+					neutral: '#F1F0FB', // Soft gray
+				},
+				"emotion-vivid": {
+					happy: '#4ADE80', // Vivid green
+					sad: '#0EA5E9', // Ocean blue
+					angry: '#F97316', // Bright orange
+					surprised: '#FACC15', // Bright yellow
+					fearful: '#D946EF', // Magenta pink
+					disgusted: '#F43F5E', // Bright red
+					neutral: '#8B5CF6', // Vivid purple
 				}
 			},
 			borderRadius: {
@@ -70,25 +90,30 @@ export default {
 			},
 			keyframes: {
 				'accordion-down': {
-					from: {
-						height: '0'
-					},
-					to: {
-						height: 'var(--radix-accordion-content-height)'
-					}
+					from: { height: '0' },
+					to: { height: 'var(--radix-accordion-content-height)' }
 				},
 				'accordion-up': {
-					from: {
-						height: 'var(--radix-accordion-content-height)'
-					},
-					to: {
-						height: '0'
-					}
+					from: { height: 'var(--radix-accordion-content-height)' },
+					to: { height: '0' }
+				},
+				'pulse-gentle': {
+					'0%, 100%': { opacity: '1' },
+					'50%': { opacity: '0.8' }
+				},
+				'scale-up': {
+					'0%': { transform: 'scale(0.95)' },
+					'100%': { transform: 'scale(1)' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'pulse-gentle': 'pulse-gentle 2s ease-in-out infinite',
+				'scale-up': 'scale-up 0.2s ease-out'
+			},
+			fontFamily: {
+				sans: ['Inter', 'sans-serif'],
 			}
 		}
 	},
