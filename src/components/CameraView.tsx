@@ -71,6 +71,9 @@ const CameraView: React.FC<CameraViewProps> = ({ onFrame, hasPermission }) => {
     
     if (!context) return;
     
+    // Make sure video has valid dimensions before drawing to canvas
+    if (video.videoWidth === 0 || video.videoHeight === 0) return;
+    
     // Set canvas dimensions to match video
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
@@ -95,9 +98,16 @@ const CameraView: React.FC<CameraViewProps> = ({ onFrame, hasPermission }) => {
   
   useEffect(() => {
     let frameId: number;
+    let frameCounter = 0;
     
     const processFrames = () => {
-      captureFrame();
+      frameCounter++;
+      
+      // Process every 3rd frame to reduce CPU usage and simulate processing time
+      if (frameCounter % 3 === 0) {
+        captureFrame();
+      }
+      
       frameId = requestAnimationFrame(processFrames);
     };
     
@@ -113,7 +123,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onFrame, hasPermission }) => {
   }, [isCameraActive]);
   
   return (
-    <div className="camera-container">
+    <div className="camera-container relative w-full aspect-[3/4] bg-black rounded-lg overflow-hidden">
       <video 
         ref={videoRef}
         className="h-full w-full object-cover"
@@ -122,8 +132,8 @@ const CameraView: React.FC<CameraViewProps> = ({ onFrame, hasPermission }) => {
       />
       
       {!isCameraActive && (
-        <div className="camera-placeholder">
-          <Camera className="w-16 h-16 opacity-50" />
+        <div className="camera-placeholder absolute inset-0 flex items-center justify-center">
+          <Camera className="w-16 h-16 text-white opacity-50" />
         </div>
       )}
       

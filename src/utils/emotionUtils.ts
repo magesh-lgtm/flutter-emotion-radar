@@ -1,4 +1,3 @@
-
 // Dummy data for simulating emotion detection since we can't integrate with TensorFlow Lite in this web app
 export type Emotion = 'happy' | 'sad' | 'angry' | 'surprised' | 'fearful' | 'disgusted' | 'neutral';
 
@@ -7,36 +6,70 @@ export interface EmotionResult {
   confidence: number;
 }
 
+// Store the last detected emotion to prevent rapid changes
+let lastEmotion: Emotion = 'neutral';
+let lastConfidence: number = 0.75;
+let detectionCounter = 0;
+
 // For the web demo, we'll use a mock function to simulate detection
 export const detectEmotion = (imageData: ImageData): EmotionResult => {
   // In a real app, this would process the imageData with a TensorFlow model
   
-  // For the demo, return random emotions with varying confidence
-  const emotions: Emotion[] = ['happy', 'sad', 'angry', 'surprised', 'fearful', 'disgusted', 'neutral'];
+  // Only change emotion occasionally to make it seem more stable
+  detectionCounter++;
   
-  // Generate a random weighted distribution that prefers 'happy' and 'neutral'
-  // to make the demo feel more realistic
-  const weights = [0.25, 0.10, 0.10, 0.15, 0.05, 0.05, 0.30]; // Weights for each emotion
-  
-  // Select an emotion based on the weights
-  const random = Math.random();
-  let sum = 0;
-  let selectedEmotion: Emotion = 'neutral';
-  
-  for (let i = 0; i < emotions.length; i++) {
-    sum += weights[i];
-    if (random < sum) {
-      selectedEmotion = emotions[i];
-      break;
-    }
+  // Add an initial delay to simulate "analyzing" the face
+  if (detectionCounter < 20) {
+    return {
+      emotion: 'neutral',
+      confidence: 0.5 + (detectionCounter / 20 * 0.3) // Gradually increase confidence
+    };
   }
   
-  // Generate a relatively high confidence for more realistic feel
-  const confidence = 0.7 + Math.random() * 0.3;
+  // Only potentially change the emotion every ~30 frames to make it more stable
+  if (detectionCounter % 30 === 0) {
+    const emotions: Emotion[] = ['happy', 'sad', 'angry', 'surprised', 'fearful', 'disgusted', 'neutral'];
+    
+    // Generate a random weighted distribution that prefers 'happy' and 'neutral'
+    // to make the demo feel more realistic
+    const weights = [0.25, 0.10, 0.10, 0.15, 0.05, 0.05, 0.30]; // Weights for each emotion
+    
+    // Add bias to stay on the current emotion (stability)
+    const currentEmotionIndex = emotions.indexOf(lastEmotion);
+    if (currentEmotionIndex !== -1) {
+      const biasedWeights = [...weights];
+      biasedWeights[currentEmotionIndex] += 0.4; // Bias toward current emotion
+      
+      // Normalize weights
+      const sum = biasedWeights.reduce((a, b) => a + b, 0);
+      for (let i = 0; i < biasedWeights.length; i++) {
+        biasedWeights[i] = biasedWeights[i] / sum;
+      }
+      
+      // Select an emotion based on the biased weights
+      const random = Math.random();
+      let sum2 = 0;
+      
+      for (let i = 0; i < emotions.length; i++) {
+        sum2 += biasedWeights[i];
+        if (random < sum2) {
+          lastEmotion = emotions[i];
+          break;
+        }
+      }
+    }
+    
+    // Slightly adjust confidence but keep it realistic
+    lastConfidence = 0.7 + Math.random() * 0.25;
+  }
+  
+  // Simulate small variations in confidence
+  const confidenceVariation = (Math.random() - 0.5) * 0.05;
+  const adjustedConfidence = Math.min(0.98, Math.max(0.65, lastConfidence + confidenceVariation));
   
   return {
-    emotion: selectedEmotion,
-    confidence
+    emotion: lastEmotion,
+    confidence: adjustedConfidence
   };
 };
 
