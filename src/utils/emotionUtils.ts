@@ -1,28 +1,57 @@
-// Dummy data for simulating emotion detection since we can't integrate with TensorFlow Lite in this web app
-export type Emotion = 'happy' | 'sad' | 'angry' | 'surprised' | 'fearful' | 'disgusted' | 'neutral';
+
+// Types and interfaces for emotion detection
+export type Emotion = 'happy' | 'sad' | 'angry' | 'surprised' | 'fearful' | 'disgusted' | 'neutral' | 'no-face';
 
 export interface EmotionResult {
   emotion: Emotion;
   confidence: number;
+  faceDetected: boolean;
 }
 
 // Store the last detected emotion to prevent rapid changes
 let lastEmotion: Emotion = 'neutral';
 let lastConfidence: number = 0.75;
 let detectionCounter = 0;
+let noFaceCounter = 0;
+const NO_FACE_THRESHOLD = 10; // Number of frames before we declare "no face"
 
 // For the web demo, we'll use a mock function to simulate detection
 export const detectEmotion = (imageData: ImageData): EmotionResult => {
   // In a real app, this would process the imageData with a TensorFlow model
-  
-  // Only change emotion occasionally to make it seem more stable
   detectionCounter++;
+  
+  // Simulate face detection (random chance of no face being detected)
+  const hasFace = simulateFaceDetection(imageData);
+  
+  if (!hasFace) {
+    noFaceCounter++;
+    // If no face detected for several consecutive frames, report no face
+    if (noFaceCounter > NO_FACE_THRESHOLD) {
+      return {
+        emotion: 'no-face',
+        confidence: 0,
+        faceDetected: false
+      };
+    }
+    
+    // For short periods with no face, maintain the last detected emotion
+    // but with declining confidence
+    return {
+      emotion: lastEmotion,
+      confidence: Math.max(0, lastConfidence - 0.05),
+      faceDetected: false
+    };
+  }
+  
+  // Reset no face counter when face is detected
+  noFaceCounter = 0;
   
   // Add an initial delay to simulate "analyzing" the face
   if (detectionCounter < 20) {
     return {
       emotion: 'neutral',
-      confidence: 0.5 + (detectionCounter / 20 * 0.3) // Gradually increase confidence
+      confidence: 0.5 + (detectionCounter / 20 * 0.3), // Gradually increase confidence
+      faceDetected: true
     };
   }
   
@@ -69,9 +98,25 @@ export const detectEmotion = (imageData: ImageData): EmotionResult => {
   
   return {
     emotion: lastEmotion,
-    confidence: adjustedConfidence
+    confidence: adjustedConfidence,
+    faceDetected: true
   };
 };
+
+// Helper function to simulate face detection
+function simulateFaceDetection(imageData: ImageData): boolean {
+  // This would be a real face detection algorithm in production
+  // For now, let's assume there's a 95% chance of detecting a face
+  // with some periodic drops to simulate realistic detection failures
+  
+  // Every 100 frames, simulate a brief period of no face detected
+  const dropFrames = detectionCounter % 100 < 5;
+  
+  // Random chance (5%) of failing to detect a face on any frame
+  const randomFailure = Math.random() < 0.05;
+  
+  return !(dropFrames || randomFailure);
+}
 
 // Get color based on emotion for UI display
 export const getEmotionColor = (emotion: Emotion, vivid: boolean = false): string => {
@@ -85,6 +130,7 @@ export const getEmotionColor = (emotion: Emotion, vivid: boolean = false): strin
     fearful: `bg-${colorType}-fearful`,
     disgusted: `bg-${colorType}-disgusted`,
     neutral: `bg-${colorType}-neutral`,
+    'no-face': `bg-gray-400`,
   };
   
   return emotionColors[emotion];
@@ -100,6 +146,7 @@ export const getEmotionDescription = (emotion: Emotion): string => {
     fearful: "You seem concerned.",
     disgusted: "You look displeased.",
     neutral: "You're looking calm and composed.",
+    'no-face': "No face detected. Please position yourself in front of the camera.",
   };
   
   return descriptions[emotion];
@@ -107,5 +154,8 @@ export const getEmotionDescription = (emotion: Emotion): string => {
 
 // Format confidence percentage
 export const formatConfidence = (confidence: number): string => {
+  if (isNaN(confidence) || confidence === null || confidence === undefined) {
+    return "0%"; // Return 0% instead of NaN%
+  }
   return `${Math.round(confidence * 100)}%`;
 };

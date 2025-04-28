@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -8,7 +9,8 @@ import {
   AlertCircle,
   ThumbsDown,
   Meh,
-  Star
+  Star,
+  UserX
 } from "lucide-react";
 import { 
   Emotion, 
@@ -35,7 +37,7 @@ const EmotionDisplay: React.FC<EmotionDisplayProps> = ({ detectedEmotion }) => {
     );
   }
   
-  const { emotion, confidence } = detectedEmotion;
+  const { emotion, confidence, faceDetected } = detectedEmotion;
   
   // Get the appropriate icon for each emotion
   const getEmotionIcon = (emotion: Emotion) => {
@@ -54,6 +56,8 @@ const EmotionDisplay: React.FC<EmotionDisplayProps> = ({ detectedEmotion }) => {
         return <ThumbsDown className="h-6 w-6 text-emotion-vivid-disgusted" />;
       case 'neutral':
         return <Meh className="h-6 w-6 text-emotion-vivid-neutral" />;
+      case 'no-face':
+        return <UserX className="h-6 w-6 text-gray-500" />;
     }
   };
   
@@ -67,13 +71,15 @@ const EmotionDisplay: React.FC<EmotionDisplayProps> = ({ detectedEmotion }) => {
       fearful: 'bg-emotion-fearful',
       disgusted: 'bg-emotion-disgusted',
       neutral: 'bg-emotion-neutral',
+      'no-face': 'bg-gray-200',
     };
     
     return colors[emotion];
   };
   
   // Color for the confidence progress bar
-  const getProgressColor = (confidence: number) => {
+  const getProgressColor = (confidence: number, faceDetected: boolean) => {
+    if (!faceDetected) return 'bg-gray-400';
     if (confidence > 0.8) return 'bg-green-500';
     if (confidence > 0.6) return 'bg-yellow-500';
     return 'bg-orange-500';
@@ -95,12 +101,14 @@ const EmotionDisplay: React.FC<EmotionDisplayProps> = ({ detectedEmotion }) => {
             </div>
             <h3 className="font-semibold capitalize">{emotion}</h3>
           </div>
-          <span className="text-sm font-medium">{formatConfidence(confidence)}</span>
+          <span className="text-sm font-medium">
+            {faceDetected ? formatConfidence(confidence) : "—"}
+          </span>
         </div>
         
         <Progress 
-          value={confidence * 100} 
-          className={cn("h-1.5 mt-1.5 mb-3", getProgressColor(confidence))}
+          value={faceDetected ? (confidence * 100) : 0} 
+          className={cn("h-1.5 mt-1.5 mb-3", getProgressColor(confidence, faceDetected))}
         />
         
         <p className="text-sm text-gray-600 mt-2">
