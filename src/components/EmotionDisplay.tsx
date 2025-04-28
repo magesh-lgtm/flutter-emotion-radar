@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -84,6 +83,31 @@ const EmotionDisplay: React.FC<EmotionDisplayProps> = ({ detectedEmotion }) => {
     if (confidence > 0.6) return 'bg-yellow-500';
     return 'bg-orange-500';
   };
+
+  // Display a special message when no face is detected
+  if (emotion === 'no-face' || !faceDetected) {
+    return (
+      <Card className="bg-gray-100 border-none shadow-lg">
+        <CardContent className="pt-6 px-4">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center space-x-2">
+              <div className="p-2 rounded-full bg-gray-200">
+                <UserX className="h-6 w-6 text-gray-500" />
+              </div>
+              <h3 className="font-semibold">No Face Detected</h3>
+            </div>
+            <span className="text-sm font-medium">—</span>
+          </div>
+          
+          <Progress value={0} className="h-1.5 mt-1.5 mb-3 bg-gray-200" />
+          
+          <p className="text-sm text-gray-600 mt-2">
+            {getEmotionDescription('no-face')}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
   
   return (
     <Card className={cn(
@@ -102,13 +126,13 @@ const EmotionDisplay: React.FC<EmotionDisplayProps> = ({ detectedEmotion }) => {
             <h3 className="font-semibold capitalize">{emotion}</h3>
           </div>
           <span className="text-sm font-medium">
-            {faceDetected ? formatConfidence(confidence) : "—"}
+            {formatConfidence(confidence)}
           </span>
         </div>
         
         <Progress 
-          value={faceDetected ? (confidence * 100) : 0} 
-          className={cn("h-1.5 mt-1.5 mb-3", getProgressColor(confidence, faceDetected))}
+          value={confidence * 100} 
+          className={cn("h-1.5 mt-1.5 mb-3", getProgressColor(confidence, true))}
         />
         
         <p className="text-sm text-gray-600 mt-2">
