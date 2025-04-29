@@ -45,7 +45,7 @@ export const loadFaceApiModels = async (): Promise<void> => {
 // Function to detect emotions in an image
 export const detectFaceEmotions = async (
   imageElement: HTMLImageElement | HTMLVideoElement | HTMLCanvasElement
-): Promise<faceapi.FaceDetection | null> => {
+): Promise<faceapi.WithFaceExpressions<faceapi.WithFaceLandmarks<{ detection: faceapi.FaceDetection }, faceapi.FaceLandmarks68>> | null> => {
   if (!modelsLoaded) {
     console.warn('Models not loaded yet. Loading models now...');
     try {
@@ -63,7 +63,7 @@ export const detectFaceEmotions = async (
       .withFaceLandmarks()
       .withFaceExpressions();
     
-    return detections;
+    return detections || null;
   } catch (error) {
     console.error('Error in face detection:', error);
     return null;

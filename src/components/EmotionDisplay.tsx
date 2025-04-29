@@ -15,11 +15,32 @@ import {
 } from "lucide-react";
 import { 
   Emotion, 
-  EmotionResult, 
-  formatConfidence,
-  getEmotionDescription 
-} from '@/utils/emotionUtils';
+  EmotionResult
+} from '@/utils/faceApiUtils';
 import { cn } from '@/lib/utils';
+
+// Helper functions
+const formatConfidence = (confidence: number): string => {
+  if (isNaN(confidence) || confidence === null || confidence === undefined) {
+    return "0%"; // Return 0% instead of NaN%
+  }
+  return `${Math.round(confidence * 100)}%`;
+};
+
+const getEmotionDescription = (emotion: Emotion): string => {
+  const descriptions: Record<Emotion, string> = {
+    happy: "You're beaming with joy!",
+    sad: "You seem a bit down.",
+    angry: "You appear frustrated.",
+    surprised: "You look astonished!",
+    fearful: "You seem concerned.",
+    disgusted: "You look displeased.",
+    neutral: "You're looking calm and composed.",
+    'no-face': "No face detected. Please position yourself in front of the camera.",
+  };
+  
+  return descriptions[emotion];
+};
 
 interface EmotionDisplayProps {
   detectedEmotion: EmotionResult | null;
@@ -44,19 +65,19 @@ const EmotionDisplay: React.FC<EmotionDisplayProps> = ({ detectedEmotion }) => {
   const getEmotionIcon = (emotion: Emotion) => {
     switch (emotion) {
       case 'happy':
-        return <Smile className="h-6 w-6 text-emotion-vivid-happy" />;
+        return <Smile className="h-6 w-6 text-yellow-500" />;
       case 'sad':
-        return <Frown className="h-6 w-6 text-emotion-vivid-sad" />;
+        return <Frown className="h-6 w-6 text-blue-500" />;
       case 'angry':
-        return <AlertTriangle className="h-6 w-6 text-emotion-vivid-angry" />;
+        return <AlertTriangle className="h-6 w-6 text-red-500" />;
       case 'surprised':
-        return <Star className="h-6 w-6 text-emotion-vivid-surprised" />;
+        return <Star className="h-6 w-6 text-purple-500" />;
       case 'fearful':
-        return <AlertCircle className="h-6 w-6 text-emotion-vivid-fearful" />;
+        return <AlertCircle className="h-6 w-6 text-orange-500" />;
       case 'disgusted':
-        return <ThumbsDown className="h-6 w-6 text-emotion-vivid-disgusted" />;
+        return <ThumbsDown className="h-6 w-6 text-green-800" />;
       case 'neutral':
-        return <Meh className="h-6 w-6 text-emotion-vivid-neutral" />;
+        return <Meh className="h-6 w-6 text-gray-500" />;
       case 'no-face':
         return <UserX className="h-6 w-6 text-gray-500" />;
     }
@@ -65,13 +86,13 @@ const EmotionDisplay: React.FC<EmotionDisplayProps> = ({ detectedEmotion }) => {
   // Get background color based on emotion
   const getBgColor = (emotion: Emotion) => {
     const colors: Record<Emotion, string> = {
-      happy: 'bg-emotion-happy',
-      sad: 'bg-emotion-sad',
-      angry: 'bg-emotion-angry',
-      surprised: 'bg-emotion-surprised',
-      fearful: 'bg-emotion-fearful',
-      disgusted: 'bg-emotion-disgusted',
-      neutral: 'bg-emotion-neutral',
+      happy: 'bg-yellow-100',
+      sad: 'bg-blue-100',
+      angry: 'bg-red-100',
+      surprised: 'bg-purple-100',
+      fearful: 'bg-orange-100',
+      disgusted: 'bg-green-100',
+      neutral: 'bg-gray-100',
       'no-face': 'bg-gray-200',
     };
     
@@ -112,8 +133,7 @@ const EmotionDisplay: React.FC<EmotionDisplayProps> = ({ detectedEmotion }) => {
               <span className="text-xs font-medium w-10">0%</span>
               <Progress 
                 value={confidence * 100} 
-                className="h-2"
-                indicatorClassName={getProgressColor(confidence, faceDetected)}
+                className={cn("h-2", getProgressColor(confidence, faceDetected))}
               />
               <span className="text-xs font-medium w-10">{formatConfidence(confidence)}</span>
             </div>

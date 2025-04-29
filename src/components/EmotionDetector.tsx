@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import CameraView from './CameraView';
 import EmotionDisplay from './EmotionDisplay';
 import PermissionRequest from './PermissionRequest';
-import { EmotionResult } from '@/utils/emotionUtils';
+import { EmotionResult } from '@/utils/faceApiUtils';
 import { loadFaceApiModels, detectFaceEmotions, mapFaceApiEmotionToAppEmotion } from '@/utils/faceApiUtils';
 import { useToast } from "@/hooks/use-toast";
 
