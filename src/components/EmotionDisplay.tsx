@@ -11,7 +11,8 @@ import {
   Meh,
   Star,
   UserX,
-  Info
+  Info,
+  Brain
 } from "lucide-react";
 import { 
   Emotion, 
@@ -20,6 +21,8 @@ import {
   getEmotionDescription 
 } from '@/utils/emotionUtils';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 
 interface EmotionDisplayProps {
   detectedEmotion: EmotionResult | null;
@@ -86,11 +89,64 @@ const EmotionDisplay: React.FC<EmotionDisplayProps> = ({ detectedEmotion }) => {
     return 'bg-orange-500';
   };
 
-  // Display a special message when no face is detected
-  if (emotion === 'no-face' || !faceDetected) {
-    return (
-      <Card className="bg-gray-100 border-none shadow-lg">
-        <CardContent className="pt-6 px-4">
+  // Display a message for the demonstration
+  return (
+    <Card className="bg-white/90 backdrop-blur-md border-none shadow-lg">
+      <CardContent className="pt-6 px-4">
+        <div className="p-3 bg-red-50 rounded-md flex items-start gap-2 mb-4">
+          <AlertCircle className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
+          <div className="text-sm text-red-700">
+            <p className="font-semibold">Demo Mode Limitations</p>
+            <p>
+              The current implementation uses simulated data and cannot accurately detect emotions.
+              For real emotion detection, you need to implement a machine learning model.
+            </p>
+          </div>
+        </div>
+        
+        <div className="border border-gray-200 p-4 rounded-md mb-4">
+          <h3 className="text-lg font-semibold mb-2">Recommended Solutions</h3>
+          
+          <div className="space-y-3">
+            <div className="flex items-start gap-2">
+              <Brain className="h-5 w-5 text-blue-600 mt-1 flex-shrink-0" />
+              <div>
+                <p className="font-medium">TensorFlow.js with Face-API.js</p>
+                <p className="text-sm text-gray-600">
+                  Provides pre-trained models for accurate face detection and emotion recognition directly in the browser.
+                </p>
+                <a 
+                  href="https://github.com/justadudewhohacks/face-api.js" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-sm text-blue-600 hover:underline"
+                >
+                  Learn more →
+                </a>
+              </div>
+            </div>
+            
+            <div className="flex items-start gap-2">
+              <Brain className="h-5 w-5 text-purple-600 mt-1 flex-shrink-0" />
+              <div>
+                <p className="font-medium">Hugging Face Transformers</p>
+                <p className="text-sm text-gray-600">
+                  Access to state-of-the-art emotion recognition models that work in the browser.
+                </p>
+                <a 
+                  href="https://huggingface.co/docs/transformers.js/index" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-sm text-purple-600 hover:underline"
+                >
+                  Learn more →
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {emotion === 'no-face' || !faceDetected ? (
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center space-x-2">
               <div className="p-2 rounded-full bg-gray-200">
@@ -98,64 +154,23 @@ const EmotionDisplay: React.FC<EmotionDisplayProps> = ({ detectedEmotion }) => {
               </div>
               <h3 className="font-semibold">No Face Detected</h3>
             </div>
-            <span className="text-sm font-medium">—</span>
           </div>
-          
-          <Progress value={0} className="h-1.5 mt-1.5 mb-3 bg-gray-200" />
-          
-          <p className="text-sm text-gray-600 mt-2">
-            {getEmotionDescription('no-face')}
-          </p>
-          
-          <div className="mt-3 p-2 bg-blue-50 rounded-md flex items-start gap-2">
-            <Info className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
-            <p className="text-xs text-blue-700">
-              This is a demonstration using simulated data. For accurate emotion detection, 
-              a real ML model like TensorFlow.js with a pre-trained facial emotion recognition model is needed.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-  
-  return (
-    <Card className={cn(
-      "bg-white/90 backdrop-blur-md border-none shadow-lg emotion-badge",
-      "hover:scale-105 transition-transform"
-    )}>
-      <CardContent className="pt-6">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center space-x-2">
-            <div className={cn(
-              "p-2 rounded-full",
-              getBgColor(emotion)
-            )}>
-              {getEmotionIcon(emotion)}
+        ) : (
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center space-x-2">
+              <div className={cn(
+                "p-2 rounded-full",
+                getBgColor(emotion)
+              )}>
+                {getEmotionIcon(emotion)}
+              </div>
+              <h3 className="font-semibold capitalize">{emotion}</h3>
             </div>
-            <h3 className="font-semibold capitalize">{emotion}</h3>
+            <span className="text-sm font-medium">
+              {formatConfidence(confidence)}
+            </span>
           </div>
-          <span className="text-sm font-medium">
-            {formatConfidence(confidence)}
-          </span>
-        </div>
-        
-        <Progress 
-          value={confidence * 100} 
-          className={cn("h-1.5 mt-1.5 mb-3", getProgressColor(confidence, true))}
-        />
-        
-        <p className="text-sm text-gray-600 mt-2">
-          {getEmotionDescription(emotion)}
-        </p>
-        
-        <div className="mt-3 p-2 bg-amber-50 rounded-md flex items-start gap-2">
-          <Info className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
-          <p className="text-xs text-amber-700">
-            Demo mode: This app is currently using simulated emotion detection. 
-            Results do not reflect actual facial analysis.
-          </p>
-        </div>
+        )}
       </CardContent>
     </Card>
   );
