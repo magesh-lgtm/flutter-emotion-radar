@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Camera, RefreshCw } from "lucide-react";
 
 interface CameraViewProps {
-  onFrame: (imageData: ImageData) => void;
+  onFrame: (imageData: ImageData, videoElement: HTMLVideoElement) => void;
   hasPermission: boolean;
 }
 
@@ -23,8 +23,8 @@ const CameraView: React.FC<CameraViewProps> = ({ onFrame, hasPermission }) => {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { 
           facingMode,
-          width: { ideal: 480 },
-          height: { ideal: 640 }
+          width: { ideal: 640 },
+          height: { ideal: 480 }
         }
       });
       
@@ -83,7 +83,9 @@ const CameraView: React.FC<CameraViewProps> = ({ onFrame, hasPermission }) => {
     
     // Extract image data for processing
     const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-    onFrame(imageData);
+    
+    // Pass both the image data and the video element itself for processing
+    onFrame(imageData, video);
   };
   
   useEffect(() => {
@@ -103,8 +105,8 @@ const CameraView: React.FC<CameraViewProps> = ({ onFrame, hasPermission }) => {
     const processFrames = () => {
       frameCounter++;
       
-      // Process every 3rd frame to reduce CPU usage and simulate processing time
-      if (frameCounter % 3 === 0) {
+      // Process every 5th frame to reduce CPU usage and allow time for model processing
+      if (frameCounter % 5 === 0) {
         captureFrame();
       }
       

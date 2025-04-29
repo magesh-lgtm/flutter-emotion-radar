@@ -11,7 +11,6 @@ import {
   Meh,
   Star,
   UserX,
-  Info,
   Brain
 } from "lucide-react";
 import { 
@@ -21,8 +20,6 @@ import {
   getEmotionDescription 
 } from '@/utils/emotionUtils';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
 
 interface EmotionDisplayProps {
   detectedEmotion: EmotionResult | null;
@@ -34,7 +31,7 @@ const EmotionDisplay: React.FC<EmotionDisplayProps> = ({ detectedEmotion }) => {
       <Card className="bg-black/30 backdrop-blur-sm text-white border-none shadow-lg">
         <CardContent className="pt-6 px-4 text-center">
           <div className="animate-pulse">
-            <p>Detecting emotion...</p>
+            <p>Initializing emotion detection...</p>
           </div>
         </CardContent>
       </Card>
@@ -89,86 +86,40 @@ const EmotionDisplay: React.FC<EmotionDisplayProps> = ({ detectedEmotion }) => {
     return 'bg-orange-500';
   };
 
-  // Display a message for the demonstration
   return (
     <Card className="bg-white/90 backdrop-blur-md border-none shadow-lg">
       <CardContent className="pt-6 px-4">
-        <div className="p-3 bg-red-50 rounded-md flex items-start gap-2 mb-4">
-          <AlertCircle className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
-          <div className="text-sm text-red-700">
-            <p className="font-semibold">Demo Mode Limitations</p>
-            <p>
-              The current implementation uses simulated data and cannot accurately detect emotions.
-              For real emotion detection, you need to implement a machine learning model.
+        {emotion === 'no-face' || !faceDetected ? (
+          <div className="flex items-center flex-col mb-4">
+            <div className="p-3 rounded-full bg-gray-200 mb-2">
+              <UserX className="h-8 w-8 text-gray-500" />
+            </div>
+            <h3 className="font-bold text-lg text-gray-700 mb-1">No Face Detected</h3>
+            <p className="text-sm text-gray-600 text-center">
+              Please make sure your face is clearly visible in the camera.
             </p>
           </div>
-        </div>
-        
-        <div className="border border-gray-200 p-4 rounded-md mb-4">
-          <h3 className="text-lg font-semibold mb-2">Recommended Solutions</h3>
-          
-          <div className="space-y-3">
-            <div className="flex items-start gap-2">
-              <Brain className="h-5 w-5 text-blue-600 mt-1 flex-shrink-0" />
-              <div>
-                <p className="font-medium">TensorFlow.js with Face-API.js</p>
-                <p className="text-sm text-gray-600">
-                  Provides pre-trained models for accurate face detection and emotion recognition directly in the browser.
-                </p>
-                <a 
-                  href="https://github.com/justadudewhohacks/face-api.js" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-sm text-blue-600 hover:underline"
-                >
-                  Learn more →
-                </a>
-              </div>
-            </div>
-            
-            <div className="flex items-start gap-2">
-              <Brain className="h-5 w-5 text-purple-600 mt-1 flex-shrink-0" />
-              <div>
-                <p className="font-medium">Hugging Face Transformers</p>
-                <p className="text-sm text-gray-600">
-                  Access to state-of-the-art emotion recognition models that work in the browser.
-                </p>
-                <a 
-                  href="https://huggingface.co/docs/transformers.js/index" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-sm text-purple-600 hover:underline"
-                >
-                  Learn more →
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        {emotion === 'no-face' || !faceDetected ? (
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center space-x-2">
-              <div className="p-2 rounded-full bg-gray-200">
-                <UserX className="h-6 w-6 text-gray-500" />
-              </div>
-              <h3 className="font-semibold">No Face Detected</h3>
-            </div>
-          </div>
         ) : (
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center space-x-2">
-              <div className={cn(
-                "p-2 rounded-full",
-                getBgColor(emotion)
-              )}>
-                {getEmotionIcon(emotion)}
-              </div>
-              <h3 className="font-semibold capitalize">{emotion}</h3>
+          <div className="flex flex-col items-center mb-4">
+            <div className={cn(
+              "p-3 rounded-full mb-2",
+              getBgColor(emotion)
+            )}>
+              {getEmotionIcon(emotion)}
             </div>
-            <span className="text-sm font-medium">
-              {formatConfidence(confidence)}
-            </span>
+            <h3 className="font-bold text-lg text-gray-700 mb-1 capitalize">{emotion}</h3>
+            <div className="flex items-center gap-2 w-full max-w-xs mt-2">
+              <span className="text-xs font-medium w-10">0%</span>
+              <Progress 
+                value={confidence * 100} 
+                className="h-2"
+                indicatorClassName={getProgressColor(confidence, faceDetected)}
+              />
+              <span className="text-xs font-medium w-10">{formatConfidence(confidence)}</span>
+            </div>
+            <p className="text-sm text-gray-600 text-center mt-2">
+              {getEmotionDescription(emotion)}
+            </p>
           </div>
         )}
       </CardContent>

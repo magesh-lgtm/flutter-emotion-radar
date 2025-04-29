@@ -1,15 +1,45 @@
-
 import React, { useState, useEffect } from 'react';
 import CameraView from './CameraView';
 import EmotionDisplay from './EmotionDisplay';
 import PermissionRequest from './PermissionRequest';
-import { detectEmotion, EmotionResult } from '@/utils/emotionUtils';
+import { EmotionResult } from '@/utils/emotionUtils';
+import { loadFaceApiModels, detectFaceEmotions, mapFaceApiEmotionToAppEmotion } from '@/utils/faceApiUtils';
 import { useToast } from "@/hooks/use-toast";
 
 const EmotionDetector: React.FC = () => {
   const [permissionState, setPermissionState] = useState<'prompt' | 'denied' | 'granted' | 'error'>('prompt');
   const [detectedEmotion, setDetectedEmotion] = useState<EmotionResult | null>(null);
+  const [isLoadingModels, setIsLoadingModels] = useState(false);
+  const [modelsLoaded, setModelsLoaded] = useState(false);
   const { toast } = useToast();
+  
+  // Load Face-API.js models when component mounts
+  useEffect(() => {
+    const loadModels = async () => {
+      if (!modelsLoaded && !isLoadingModels) {
+        setIsLoadingModels(true);
+        try {
+          await loadFaceApiModels();
+          setModelsLoaded(true);
+          toast({
+            title: "Models Loaded",
+            description: "Facial recognition models loaded successfully.",
+          });
+        } catch (error) {
+          console.error("Failed to load models:", error);
+          toast({
+            title: "Model Loading Error",
+            description: "Could not load facial recognition models. Please refresh and try again.",
+            variant: "destructive"
+          });
+        } finally {
+          setIsLoadingModels(false);
+        }
+      }
+    };
+    
+    loadModels();
+  }, []);
   
   // Function to handle camera permission request
   const requestCameraPermission = async () => {
@@ -43,12 +73,50 @@ const EmotionDetector: React.FC = () => {
     }
   };
   
-  // Process video frames to detect emotions
-  const handleVideoFrame = (imageData: ImageData) => {
-    // In a real app, this would send the image data to a TensorFlow model
-    // For our demo, we'll use a simulated emotion detection function
-    const result = detectEmotion(imageData);
-    setDetectedEmotion(result);
+  // Process video frames to detect emotions using Face-API.js
+  const handleVideoFrame = async (imageData: ImageData, videoElement: HTMLVideoElement) => {
+    if (!modelsLoaded) {
+      // Don't attempt detection until models are loaded
+      setDetectedEmotion({
+        emotion: 'neutral',
+        confidence: 0,
+        faceDetected: false,
+      });
+      return;
+    }
+    
+    try {
+      // Use the video element directly for face detection
+      const detections = await detectFaceEmotions(videoElement);
+      
+      if (detections) {
+        // We have a face with expressions
+        const { emotion, confidence } = mapFaceApiEmotionToAppEmotion(detections.expressions);
+        
+        setDetectedEmotion({
+          emotion,
+          confidence,
+          faceDetected: true
+        });
+      } else {
+        // No face detected
+        setDetectedEmotion({
+          emotion: 'no-face',
+          confidence: 0,
+          faceDetected: false
+        });
+      }
+    } catch (error) {
+      console.error("Error analyzing frame:", error);
+      // Keep the last detected emotion or set to neutral if none exists
+      if (!detectedEmotion) {
+        setDetectedEmotion({
+          emotion: 'neutral',
+          confidence: 0,
+          faceDetected: false
+        });
+      }
+    }
   };
   
   // Check initially if we already have camera permission
@@ -85,6 +153,15 @@ const EmotionDetector: React.FC = () => {
   
   return (
     <div className="flex flex-col items-center w-full gap-4">
+      {!modelsLoaded && (
+        <div className="w-full max-w-md p-4 bg-blue-50 rounded-lg text-center mb-2">
+          <p className="font-medium text-blue-700">Loading facial recognition models...</p>
+          <div className="mt-2 h-1 bg-blue-100 rounded-full overflow-hidden">
+            <div className="h-full bg-blue-500 rounded-full animate-pulse"></div>
+          </div>
+        </div>
+      )}
+      
       {permissionState !== 'granted' ? (
         <PermissionRequest 
           onRequestPermission={requestCameraPermission} 
