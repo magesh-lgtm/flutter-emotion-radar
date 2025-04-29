@@ -1,3 +1,4 @@
+
 // Types and interfaces for emotion detection
 export type Emotion = 'happy' | 'sad' | 'angry' | 'surprised' | 'fearful' | 'disgusted' | 'neutral' | 'no-face';
 
@@ -12,21 +13,37 @@ let lastEmotion: Emotion = 'neutral';
 let lastConfidence: number = 0.75;
 let detectionCounter = 0;
 let noFaceCounter = 0;
-// Increase this threshold to make the system less sensitive to false positives
-const NO_FACE_THRESHOLD = 5; // Lower threshold to switch to "no-face" state faster
+// Higher threshold to make the system more responsive to "no-face" state
+const NO_FACE_THRESHOLD = 3; 
 
 // For the web demo, we'll use a mock function to simulate detection
 export const detectEmotion = (imageData: ImageData): EmotionResult => {
   // In a real app, this would process the imageData with a TensorFlow model
   detectionCounter++;
   
+  // Check if the image is mostly empty (indicates no face)
+  const isEmpty = isImageEmpty(imageData);
+  
+  // Immediately report no face if the image is empty
+  if (isEmpty) {
+    noFaceCounter += 2; // Increase counter more aggressively
+    
+    if (noFaceCounter > NO_FACE_THRESHOLD) {
+      return {
+        emotion: 'no-face',
+        confidence: 0,
+        faceDetected: false
+      };
+    }
+  }
+  
   // Simulate face detection with improved logic
   const hasFace = simulateFaceDetection(imageData);
   
   if (!hasFace) {
     noFaceCounter++;
+    
     // If no face detected for several consecutive frames, report no face
-    // More aggressive threshold to show "no-face" state sooner
     if (noFaceCounter > NO_FACE_THRESHOLD) {
       return {
         emotion: 'no-face',
@@ -39,13 +56,13 @@ export const detectEmotion = (imageData: ImageData): EmotionResult => {
     // but with declining confidence
     return {
       emotion: lastEmotion,
-      confidence: Math.max(0, lastConfidence - 0.1), // More rapidly decrease confidence
+      confidence: Math.max(0, lastConfidence - 0.2), // More rapidly decrease confidence
       faceDetected: false
     };
   }
   
   // Reset no face counter when face is detected
-  noFaceCounter = 0;
+  noFaceCounter = Math.max(0, noFaceCounter - 1); // Gradually reduce counter when face is detected
   
   // Add an initial delay to simulate "analyzing" the face
   if (detectionCounter < 20) {
@@ -55,20 +72,22 @@ export const detectEmotion = (imageData: ImageData): EmotionResult => {
       faceDetected: true
     };
   }
+
+  // DEMO MODE: For demonstration purposes only
+  // In a real implementation, this would be replaced with actual ML model inference
+  // using a pre-trained facial emotion recognition model
   
-  // Only potentially change the emotion every ~30 frames to make it more stable
-  if (detectionCounter % 30 === 0) {
+  // Only potentially change the emotion every ~40 frames to make it more stable
+  if (detectionCounter % 40 === 0) {
+    // For demo purposes, we'll make neutral and happy more common
     const emotions: Emotion[] = ['happy', 'sad', 'angry', 'surprised', 'fearful', 'disgusted', 'neutral'];
+    const weights = [0.20, 0.10, 0.10, 0.10, 0.05, 0.05, 0.40]; // Higher weight for neutral
     
-    // Generate a random weighted distribution that prefers 'happy' and 'neutral'
-    // to make the demo feel more realistic
-    const weights = [0.25, 0.10, 0.10, 0.15, 0.05, 0.05, 0.30]; // Weights for each emotion
-    
-    // Add bias to stay on the current emotion (stability)
+    // Bias toward current emotion for stability
     const currentEmotionIndex = emotions.indexOf(lastEmotion);
     if (currentEmotionIndex !== -1) {
       const biasedWeights = [...weights];
-      biasedWeights[currentEmotionIndex] += 0.4; // Bias toward current emotion
+      biasedWeights[currentEmotionIndex] += 0.6; // Stronger bias toward current emotion
       
       // Normalize weights
       const sum = biasedWeights.reduce((a, b) => a + b, 0);
@@ -107,56 +126,65 @@ export const detectEmotion = (imageData: ImageData): EmotionResult => {
 // Helper function to simulate face detection with improved accuracy
 function simulateFaceDetection(imageData: ImageData): boolean {
   // This would be a real face detection algorithm in production
-  // For the demo, we'll make it much more strict to prevent false positives
   
   // Check if the image is mostly black/blank (common when no face is present)
-  // Simple image analysis - in real implementation this would use a proper ML model
   const isEmpty = isImageEmpty(imageData);
   if (isEmpty) {
     return false;
   }
   
-  // Increase the chance of detecting "no face" to 40% (from 5%)
-  // This makes the app much more likely to show "no-face" when appropriate
-  const randomFailure = Math.random() < 0.40;
+  // Higher chance of detecting "no face" to make the app more responsive
+  const randomFailure = Math.random() < 0.30;
   
-  // Every 50 frames (reduced from 100), simulate a brief period of no face detected
-  const dropFrames = detectionCounter % 50 < 15; // Longer periods of no detection
+  // Every 40 frames, simulate a brief period of no face detected
+  const dropFrames = detectionCounter % 40 < 10; 
   
   return !(dropFrames || randomFailure);
 }
 
-// Simple helper to check if an image is mostly empty/dark
+// More sophisticated image analysis to detect empty/dark frames
 function isImageEmpty(imageData: ImageData): boolean {
-  // This is a simplified check - in a real app this would be more sophisticated
-  // Sample pixels and check brightness
   const data = imageData.data;
   const pixelCount = data.length / 4; // RGBA values
-  const sampleSize = Math.min(1000, pixelCount); // Sample up to 1000 pixels
+  const sampleSize = Math.min(2000, pixelCount); // Sample more pixels for better accuracy
   const samplingStep = Math.floor(pixelCount / sampleSize);
   
   let totalBrightness = 0;
   let samplesChecked = 0;
+  let highContrastCount = 0;
   
   // Sample pixels throughout the image
   for (let i = 0; i < data.length; i += 4 * samplingStep) {
     const r = data[i];
     const g = data[i + 1];
     const b = data[i + 2];
+    
     // Calculate brightness (simple average)
     const brightness = (r + g + b) / 3;
     totalBrightness += brightness;
-    samplesChecked++;
     
+    // Check for high contrast (potential edge detection)
+    if (i > 4 * samplingStep) {
+      const prevR = data[i - 4 * samplingStep];
+      const prevG = data[i - 4 * samplingStep + 1];
+      const prevB = data[i - 4 * samplingStep + 2];
+      const prevBrightness = (prevR + prevG + prevB) / 3;
+      
+      if (Math.abs(brightness - prevBrightness) > 50) {
+        highContrastCount++;
+      }
+    }
+    
+    samplesChecked++;
     if (samplesChecked >= sampleSize) break;
   }
   
   // Calculate average brightness
   const avgBrightness = totalBrightness / samplesChecked;
   
-  // If brightness is below threshold, consider the image empty (no face)
-  // Adjust threshold as needed for your specific use case
-  return avgBrightness < 30; // Lower threshold for "empty" detection
+  // Consider both brightness and contrast for face detection
+  // This is a very simplified approach - real face detection uses ML models
+  return (avgBrightness < 35 || highContrastCount < sampleSize / 20);
 }
 
 // Get color based on emotion for UI display

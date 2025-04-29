@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -9,7 +10,8 @@ import {
   ThumbsDown,
   Meh,
   Star,
-  UserX
+  UserX,
+  Info
 } from "lucide-react";
 import { 
   Emotion, 
@@ -104,6 +106,14 @@ const EmotionDisplay: React.FC<EmotionDisplayProps> = ({ detectedEmotion }) => {
           <p className="text-sm text-gray-600 mt-2">
             {getEmotionDescription('no-face')}
           </p>
+          
+          <div className="mt-3 p-2 bg-blue-50 rounded-md flex items-start gap-2">
+            <Info className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+            <p className="text-xs text-blue-700">
+              This is a demonstration using simulated data. For accurate emotion detection, 
+              a real ML model like TensorFlow.js with a pre-trained facial emotion recognition model is needed.
+            </p>
+          </div>
         </CardContent>
       </Card>
     );
@@ -138,6 +148,14 @@ const EmotionDisplay: React.FC<EmotionDisplayProps> = ({ detectedEmotion }) => {
         <p className="text-sm text-gray-600 mt-2">
           {getEmotionDescription(emotion)}
         </p>
+        
+        <div className="mt-3 p-2 bg-amber-50 rounded-md flex items-start gap-2">
+          <Info className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
+          <p className="text-xs text-amber-700">
+            Demo mode: This app is currently using simulated emotion detection. 
+            Results do not reflect actual facial analysis.
+          </p>
+        </div>
       </CardContent>
     </Card>
   );
